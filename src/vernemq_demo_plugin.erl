@@ -38,7 +38,7 @@ auth_on_register({_IpAddr, _Port} = Peer, {_MountPoint, _ClientId} = SubscriberI
     ok.
 
 auth_on_publish(UserName, {_MountPoint, _ClientId} = SubscriberId, QoS, Topic, Payload, IsRetain) ->
-    error_logger:info_msg("auth_on_publish: ~p ~p ~p ~p ~p ~p", [UserName, SubscriberId, QoS, Topic, Payload, IsRetain]),
+    error_logger:info_msg("auth_on_publish1: ~p ~p ~p ~p ~p ~p", [UserName, SubscriberId, QoS, Topic, Payload, IsRetain]),
     %% do whatever you like with the params, all that matters
     %% is the return value of this function
     %%
@@ -53,18 +53,22 @@ auth_on_publish(UserName, {_MountPoint, _ClientId} = SubscriberId, QoS, Topic, P
     %% 5. return {error, whatever} -> auth chain is stopped, and message is silently dropped (unless it is a Last Will message)
     %%
     %% we return 'ok'
-    _concatString = string:concat(binary_to_list(lists:nth(1,Topic)),binary_to_list(lists:nth(2,Topic))),
-   _userNameString = binary_to_list(UserName),
+    _concatString = string:concat("device",binary_to_list(lists:nth(2,Topic))),
+    _userNameString = binary_to_list(UserName),
+    error_logger:info_msg("auth_on_publish2: ~p",[_concatString]),
+    error_logger:info_msg("auth_on_publish3: ~p",[_userNameString]),
+    if
+    _concatString == _userNameString ->
+        error_logger:info_msg("auth_on_publish4: ~p",[_userNameString]),      
+        ok;
+    true ->
+        error_logger:info_msg("auth_on_publish5: ~p",[_userNameString]),
+        {error, "topic_access_denied"}
+    end.
 
-   if
-     _concatString == _userNameString ->
-      ok;
-   true ->
-      next
-   end.
 
 auth_on_subscribe(UserName, ClientId, [{_Topic, _QoS}|_] = Topics) ->
-    error_logger:info_msg("auth_on_subscribe: ~p ~p ~p", [UserName, ClientId, Topics]),
+    error_logger:info_msg("auth_on_subscribe1: ~p ~p ~p", [UserName, ClientId, Topics]),
     %% do whatever you like with the params, all that matters
     %% is the return value of this function
     %%
@@ -73,4 +77,15 @@ auth_on_subscribe(UserName, ClientId, [{_Topic, _QoS}|_] = Topics) ->
     %% 3. return {error, whatever} -> auth chain is stopped, and no SUBACK is sent
 
     %% we return 'ok'
-    ok.
+    _concatString = string:concat("device",binary_to_list(lists:nth(2,_Topic))),
+    _userNameString = binary_to_list(UserName),
+    error_logger:info_msg("auth_on_subscribe2: ~p",[_concatString]),
+    error_logger:info_msg("auth_on_subscribe3: ~p",[_userNameString]),
+    if
+    _concatString == _userNameString ->
+        error_logger:info_msg("auth_on_subscribe4: ~p",[_userNameString]),      
+        ok;
+    true ->
+        error_logger:info_msg("auth_on_subscribe5: ~p",[_userNameString]),
+        {error, "topic_access_denied"}
+    end.
